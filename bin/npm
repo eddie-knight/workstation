@@ -1,0 +1,3 @@
+#!/bin/bash
+# Wrapper script to execute npm commands in the daily_workstation container
+docker exec daily_workstation npm "$@"
