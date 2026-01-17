@@ -6,10 +6,20 @@ services:
     tty: true
     volumes:
       - ~/.ssh:/home/developer/.ssh:ro
-      - ./go:/home/developer/go
-      - dev-volume:/home/developer/dev
-    tmpfs:
-      - /home/developer/Downloads:rw,size=2G
+      
+      - type: tmpfs
+        target: /home/developer/go
+        tmpfs:
+          size: 1G
+      - type: tmpfs
+        target: /home/developer/dev
+        tmpfs:
+          size: 2G
+      - type: tmpfs
+        target: /home/developer/Downloads
+        tmpfs:
+          size: 2G
+
     environment:
       - GOPATH=/home/developer/go
     networks:
@@ -18,11 +28,3 @@ services:
 networks:
   dev-network:
     driver: bridge
-
-volumes:
-  dev-volume:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./dev
