@@ -1,3 +1,0 @@
-#!/bin/bash
-# Wrapper script to execute go commands in the daily_workstation container
-docker exec daily_workstation go "$@"

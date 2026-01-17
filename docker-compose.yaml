@@ -2,15 +2,13 @@ services:
   workstation:
     build: .
     container_name: daily_workstation
-    stdin_open: true # Equivalent to -i
-    tty: true        # Equivalent to -t
+    stdin_open: true
+    tty: true
     volumes:
-      # Mount SSH keys as Read-Only
       - ~/.ssh:/home/developer/.ssh:ro
-      # Mount local Go workspace
       - ./go:/home/developer/go
+      - dev-volume:/home/developer/dev
     tmpfs:
-      # Mount Downloads in RAM (ephemeral)
       - /home/developer/Downloads:rw,size=2G
     environment:
       - GOPATH=/home/developer/go
@@ -20,3 +18,11 @@ services:
 networks:
   dev-network:
     driver: bridge
+
+volumes:
+  dev-volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./dev
