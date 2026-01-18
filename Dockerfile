@@ -46,8 +46,6 @@ RUN addgroup -g 1000 developer && \
 # Copy repos from build stage to a location in the image
 # (We'll copy these to the mounted dev directory at runtime)
 COPY --from=build /projects /opt/repos
-
-# Make repos readable by all users (will be copied by developer user in entrypoint)
 RUN chmod -R 755 /opt/repos
 
 # Copy entrypoint script and set permissions
