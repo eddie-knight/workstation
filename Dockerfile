@@ -4,7 +4,8 @@ FROM ubuntu:22.04 AS build
 ENV DEBIAN_FRONTEND=noninteractive
 
 # space-separated list of org names to pull repos from
-ARG ORG_NAMES="privateerproj revanite-io"
+ARG ORGS_TO_CLONE=""
+ARG REPOS_TO_CLONE=""
 
 # Install core utilities
 RUN apt-get update && \
@@ -28,7 +29,7 @@ RUN chmod +x /usr/local/bin/install_dependencies.sh
 WORKDIR /projects
 RUN --mount=type=secret,id=git_config \
     cp /run/secrets/git_config /root/.gitconfig && \
-    for org in $ORG_NAMES; do \
+    for org in $ORGS_TO_CLONE; do \
         cd /projects; \
         echo "Cloning repos from $org..."; \
         mkdir $org && cd $org; \
@@ -40,6 +41,19 @@ RUN --mount=type=secret,id=git_config \
                 install_dependencies.sh "$repo_name" || true; \
             fi; \
         done; \
+    done && \
+    for repo in $REPOS_TO_CLONE; do \
+        if [ -n "$repo" ]; then \
+            cd /projects; \
+            org=$(echo "$repo" | cut -d'/' -f1); \
+            repo_name=$(echo "$repo" | cut -d'/' -f2); \
+            echo "Cloning $repo..."; \
+            mkdir -p "$org" && cd "$org"; \
+            git clone "https://github.com/$repo.git" || true; \
+            if [ -d "$repo_name" ]; then \
+                install_dependencies.sh "$repo_name" || true; \
+            fi; \
+        fi; \
     done
 
 ##################################################

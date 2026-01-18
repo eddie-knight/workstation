@@ -5,7 +5,8 @@ services:
       secrets:
         - git_config
       args:
-        ORG_NAMES: "privateerproj revanite-io"
+        ORGS_TO_CLONE: "privateerproj revanite-io gemaraproj"
+        REPOS_TO_CLONE: "finos/technical-oversight-committee finos/common-cloud-controls"
 
     container_name: daily_workstation
     stdin_open: true
