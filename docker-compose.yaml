@@ -1,24 +1,21 @@
 services:
   workstation:
-    build: .
+    build:
+      context: .
+      secrets:
+        - git_config
+      args:
+        ORG_NAMES: "privateerproj revanite-io"
+
     container_name: daily_workstation
     stdin_open: true
     tty: true
+
     volumes:
       - ~/.ssh:/home/developer/.ssh:ro
-      
-      - type: tmpfs
-        target: /home/developer/go
-        tmpfs:
-          size: 1G
-      - type: tmpfs
-        target: /home/developer/dev
-        tmpfs:
-          size: 2G
-      - type: tmpfs
-        target: /home/developer/Downloads
-        tmpfs:
-          size: 2G
+      - dev-volume:/home/developer/dev
+      - go-volume:/home/developer/go
+      - downloads-volume:/home/developer/Downloads
 
     environment:
       - GOPATH=/home/developer/go
@@ -28,3 +25,12 @@ services:
 networks:
   dev-network:
     driver: bridge
+
+secrets:
+  git_config:
+    file: ~/.gitconfig
+
+volumes:
+  dev-volume:
+  go-volume:
+  downloads-volume:

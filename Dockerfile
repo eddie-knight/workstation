@@ -3,6 +3,9 @@ FROM ubuntu:22.04 AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# space-separated list of org names to pull repos from
+ARG ORG_NAMES="privateerproj revanite-io"
+
 # Install core utilities
 RUN apt-get update && \
     apt-get install -y git ssh curl vim build-essential sudo wget ca-certificates jq && \
@@ -10,7 +13,16 @@ RUN apt-get update && \
 
 # Pull common git repos
 WORKDIR /projects
-RUN curl -s https://api.github.com/orgs/privateerproj/repos?per_page=100 | jq -r '.[].clone_url' | xargs -n1 git clone
+RUN --mount=type=secret,id=git_config \
+    cp /run/secrets/git_config /root/.gitconfig && \
+    for org in $ORG_NAMES; do \
+        cd /projects; \
+        echo "Cloning repos from $org..."; \
+        mkdir $org && cd $org; \
+        curl -s https://api.github.com/orgs/$org/repos?per_page=100 | jq -r '.[].clone_url' | xargs -n1 git clone; \
+    done
+
+##################################################
 
 FROM alpine:latest
 
@@ -32,15 +44,14 @@ RUN addgroup -g 1000 developer && \
     echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Pre-create directories for mounting
-USER developer
+COPY --from=build /projects /home/developer/dev
 WORKDIR /home/developer
+USER developer
 RUN mkdir -p \
     Downloads \
     dev \
     go/bin \
     go/pkg \
     go/src
-
-COPY --from=build /projects /home/developer/dev
 
 CMD ["/bin/bash"]
