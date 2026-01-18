@@ -11,6 +11,9 @@ services:
     stdin_open: true
     tty: true
 
+    pre_stop:
+      - command: /cleanup_container.sh
+
     volumes:
       - ~/.ssh:/home/developer/.ssh:ro
       - ./dev:/home/developer/dev

@@ -52,6 +52,10 @@ RUN chmod -R 755 /opt/repos
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+# Copy cleanup script and set permissions
+COPY cleanup_container.sh /cleanup_container.sh
+RUN chmod +x /cleanup_container.sh
+
 # Pre-create directories for mounting
 WORKDIR /home/developer
 USER developer
