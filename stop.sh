@@ -12,9 +12,9 @@ echo "Stopping workstation container and removing volumes..."
 cd "$SCRIPT_DIR"
 docker compose down -v
 
-# Clean up temporary dev files
-if [ -f "$SCRIPT_DIR/cleanup.sh" ]; then
-    bash "$SCRIPT_DIR/cleanup.sh"
+# Clean up temporary dev files as a safeguard in case the container is not stopped properly
+if [ -f "$SCRIPT_DIR/cleanup_local.sh" ]; then
+    bash "$SCRIPT_DIR/cleanup_local.sh"
 fi
 
 # Return to the caller's directory
