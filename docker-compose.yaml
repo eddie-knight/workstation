@@ -13,7 +13,7 @@ services:
 
     volumes:
       - ~/.ssh:/home/developer/.ssh:ro
-      - dev-volume:/home/developer/dev
+      - ./dev:/home/developer/dev
       - go-volume:/home/developer/go
       - downloads-volume:/home/developer/Downloads
 
@@ -31,6 +31,5 @@ secrets:
     file: ~/.gitconfig
 
 volumes:
-  dev-volume:
   go-volume:
   downloads-volume:

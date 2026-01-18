@@ -1,1 +1,0 @@
-mv ~/projects/* /home/developer/dev/

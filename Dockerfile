@@ -1,4 +1,4 @@
-# Use Ubuntu as a stable base
+# Use Ubuntu as a stable base for cloning repos
 FROM ubuntu:22.04 AS build
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -43,8 +43,18 @@ RUN addgroup -g 1000 developer && \
     adduser -D -u 1000 -G developer -s /bin/bash developer && \
     echo "developer ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
+# Copy repos from build stage to a location in the image
+# (We'll copy these to the mounted dev directory at runtime)
+COPY --from=build /projects /opt/repos
+
+# Make repos readable by all users (will be copied by developer user in entrypoint)
+RUN chmod -R 755 /opt/repos
+
+# Copy entrypoint script and set permissions
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Pre-create directories for mounting
-COPY --from=build /projects /home/developer/dev
 WORKDIR /home/developer
 USER developer
 RUN mkdir -p \
@@ -54,4 +64,5 @@ RUN mkdir -p \
     go/pkg \
     go/src
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["/bin/bash"]
