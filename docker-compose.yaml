@@ -14,6 +14,7 @@ services:
     volumes:
       - ~/.ssh:/home/developer/.ssh:ro
       - ./dev:/home/developer/dev
+      - ./bin:/workstation-bin
       - go-volume:/home/developer/go
       - downloads-volume:/home/developer/Downloads
 
