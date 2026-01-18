@@ -30,19 +30,52 @@ rm -f "$BIN_DIR/go" "$BIN_DIR/npm" "$BIN_DIR/node"
 
 cat > "$BIN_DIR/go" << 'EOF'
 #!/bin/bash
-docker exec daily_workstation go "$@"
+# Get current working directory from host and convert to container path
+HOST_PWD="${PWD}"
+# If path contains /dev/, map it to /home/developer/dev/ in container
+if [[ "$HOST_PWD" == *"/dev/"* ]]; then
+    # Extract path after /dev/ and prepend container path
+    REL_PATH="${HOST_PWD#*/dev/}"
+    CONTAINER_PWD="/home/developer/dev/${REL_PATH}"
+    docker exec -w "$CONTAINER_PWD" daily_workstation go "$@"
+else
+    # If not in dev directory, use default container working directory
+    docker exec daily_workstation go "$@"
+fi
 EOF
 chmod +x "$BIN_DIR/go"
 
 cat > "$BIN_DIR/npm" << 'EOF'
 #!/bin/bash
-docker exec daily_workstation npm "$@"
+# Get current working directory from host and convert to container path
+HOST_PWD="${PWD}"
+# If path contains /dev/, map it to /home/developer/dev/ in container
+if [[ "$HOST_PWD" == *"/dev/"* ]]; then
+    # Extract path after /dev/ and prepend container path
+    REL_PATH="${HOST_PWD#*/dev/}"
+    CONTAINER_PWD="/home/developer/dev/${REL_PATH}"
+    docker exec -w "$CONTAINER_PWD" daily_workstation npm "$@"
+else
+    # If not in dev directory, use default container working directory
+    docker exec daily_workstation npm "$@"
+fi
 EOF
 chmod +x "$BIN_DIR/npm"
 
 cat > "$BIN_DIR/node" << 'EOF'
 #!/bin/bash
-docker exec daily_workstation node "$@"
+# Get current working directory from host and convert to container path
+HOST_PWD="${PWD}"
+# If path contains /dev/, map it to /home/developer/dev/ in container
+if [[ "$HOST_PWD" == *"/dev/"* ]]; then
+    # Extract path after /dev/ and prepend container path
+    REL_PATH="${HOST_PWD#*/dev/}"
+    CONTAINER_PWD="/home/developer/dev/${REL_PATH}"
+    docker exec -w "$CONTAINER_PWD" daily_workstation node "$@"
+else
+    # If not in dev directory, use default container working directory
+    docker exec daily_workstation node "$@"
+fi
 EOF
 chmod +x "$BIN_DIR/node"
 

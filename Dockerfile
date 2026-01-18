@@ -11,6 +11,19 @@ RUN apt-get update && \
     apt-get install -y git ssh curl vim build-essential sudo wget ca-certificates jq && \
     rm -rf /var/lib/apt/lists/*
 
+# Install Golang (needed for go mod tidy during build)
+RUN wget https://go.dev/dl/go1.21.5.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go1.21.5.linux-amd64.tar.gz && \
+    rm go1.21.5.linux-amd64.tar.gz
+ENV PATH=$PATH:/usr/local/go/bin
+# Set GOPATH to ensure module cache is in a known location
+ENV GOPATH=/root/go
+RUN mkdir -p /root/go/pkg/mod
+
+# Copy dependency installation script and make it executable
+COPY install_dependencies.sh /usr/local/bin/install_dependencies.sh
+RUN chmod +x /usr/local/bin/install_dependencies.sh
+
 # Pull common git repos
 WORKDIR /projects
 RUN --mount=type=secret,id=git_config \
@@ -19,7 +32,14 @@ RUN --mount=type=secret,id=git_config \
         cd /projects; \
         echo "Cloning repos from $org..."; \
         mkdir $org && cd $org; \
-        curl -s https://api.github.com/orgs/$org/repos?per_page=100 | jq -r '.[].clone_url' | xargs -n1 git clone; \
+        for repo_url in $(curl -s https://api.github.com/orgs/$org/repos?per_page=100 | jq -r '.[].clone_url'); do \
+            repo_name=$(basename "$repo_url" .git); \
+            echo "Cloning $repo_name..."; \
+            git clone "$repo_url" || true; \
+            if [ -d "$repo_name" ]; then \
+                install_dependencies.sh "$repo_name" || true; \
+            fi; \
+        done; \
     done
 
 ##################################################
@@ -47,6 +67,10 @@ RUN addgroup -g 1000 developer && \
 # (We'll copy these to the mounted dev directory at runtime)
 COPY --from=build /projects /opt/repos
 RUN chmod -R 755 /opt/repos
+
+# Copy Go module cache from build stage to final image
+# This preserves dependencies downloaded during build so they don't need to be re-downloaded
+COPY --from=build --chown=developer:developer /root/go/pkg/mod /home/developer/go/pkg/mod
 
 # Copy entrypoint script and set permissions
 COPY entrypoint.sh /entrypoint.sh
